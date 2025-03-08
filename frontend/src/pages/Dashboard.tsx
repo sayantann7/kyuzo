@@ -1,7 +1,7 @@
-
+import { useEffect, useState } from 'react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
+import Navbar from '../components/layout/DashboardNavbar';
 import Footer from '../components/layout/Footer';
 import QuizCreator from '../components/quiz/QuizCreator';
 import QuizzesList from '../components/dashboard/QuizzesList';
@@ -12,16 +12,35 @@ import ButtonCustom from '../components/ui/button-custom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
-  // Mock user data
-  const userData = {
-    name: "Akira",
-    level: 15,
-    xp: 3750,
-    xpToNextLevel: 4000,
-    quizzesTaken: 42,
-    averageScore: 78,
-    streak: 7
+  const [userData, setUserData] = useState(null);
+
+  const fetchUserData = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      console.log(userId);
+      const response = await fetch(`http://localhost:3000/getUserDetails/${userId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await response.json();
+      console.log(data);
+      setUserData(data);
+    }
+    catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
+
+  const extractFirstName = (fullname: string): string => {
+    return fullname.split(' ')[0];  // Extract the first name from the full name
   };
   
   // Stats cards data
@@ -34,13 +53,13 @@ const Dashboard = () => {
     },
     {
       label: "Day Streak",
-      value: userData.streak,
+      value: userData.dailyStreak,
       icon: TrendingUp,
       color: "bg-gradient-to-r from-green-500 to-emerald-400"
     },
     {
       label: "Quizzes Taken",
-      value: userData.quizzesTaken,
+      value: userData.quizzes.length,
       icon: BookOpen,
       color: "bg-gradient-to-r from-blue-500 to-cyan-400"
     },
@@ -63,7 +82,7 @@ const Dashboard = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-kyuzo-paper mb-2">
-                  Welcome back, <span className="text-kyuzo-gold">{userData.name}</span>
+                  Welcome back, <span className="text-kyuzo-gold">{extractFirstName(userData.fullname)}</span>
                 </h1>
                 <p className="text-kyuzo-paper/70">
                   Continue your learning journey and challenge yourself with new quizzes.

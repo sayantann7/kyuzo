@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
     required: true, 
     unique: true 
   },
+  fullname : {
+    type: String,
+    required: true
+  },
   email: { 
     type: String, 
     required: true, 
@@ -22,6 +26,18 @@ const userSchema = new mongoose.Schema({
   dailyStreak: { 
     type: Number, 
     default: 0 
+  },
+  averageScore: {
+    type: Number,
+    default: 0
+  },
+  level: {
+    type: Number,
+    default: 1
+  },
+  xpToNextLevel: {
+    type: Number,
+    default: 100
   },
   lastSignedIn: { 
     type: Date,

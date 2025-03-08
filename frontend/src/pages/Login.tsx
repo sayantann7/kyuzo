@@ -33,8 +33,7 @@ const Login = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const data = await response;
-      console.log(data);
+      const data = await response.json();
 
       if (!response.ok) {
         showToast(
@@ -44,6 +43,7 @@ const Login = () => {
         setIsLoading(false);
         return;
       } else {
+        localStorage.setItem('userId', data.userId);
         showToast("Login Successful", "You are now logged in");
         setIsLoading(false);
         navigate("/dashboard");

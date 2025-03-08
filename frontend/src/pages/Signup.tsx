@@ -12,6 +12,7 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [fullname, setFullname] = useState("");
   const navigate = useNavigate();
 
   const { toast, dismiss } = useToast();
@@ -44,7 +45,7 @@ const Signup = () => {
       const response = await fetch(`http://localhost:3000/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ fullname, name, email, password }),
       });
       const data = await response;
       console.log(data);
@@ -58,6 +59,7 @@ const Signup = () => {
         return;
       }
       setIsLoading(false);
+      localStorage.setItem('userId', data.userId);
       showToast("Account Created", "Your account has been created successfully");
       navigate("/dashboard");
     } catch (error) {
@@ -87,6 +89,25 @@ const Signup = () => {
         </div>
 
         <form onSubmit={handleSignup} className="space-y-5">
+
+        <div className="space-y-2">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-kyuzo-paper"
+            >
+              Full Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Your Full Name"
+              required
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              className="w-full px-4 py-3 bg-kyuzo-black/50 text-kyuzo-paper border border-kyuzo-gold/20 rounded-md focus:outline-none focus:ring-2 focus:ring-kyuzo-gold/30"
+            />
+          </div>
+
           <div className="space-y-2">
             <label
               htmlFor="name"
@@ -97,7 +118,7 @@ const Signup = () => {
             <input
               id="name"
               type="text"
-              placeholder="Your Name"
+              placeholder="Your Username"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}

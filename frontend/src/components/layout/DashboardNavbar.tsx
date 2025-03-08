@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogIn, Sun, Moon } from 'lucide-react';
 import ButtonCustom from '../ui/button-custom';
 import { cn } from "../../lib/utils"
@@ -10,6 +10,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,7 +22,10 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { label: 'Home', path: '/' },
+    { label: 'Dashboard', path: '/dashboard' },
+    { label: 'Quizzes', path: '/quizzes' },
+    { label: 'Friends', path: '/friends' },
+    { label: 'Profile', path: '/profile' },
     { label: 'About', path: '/about' },
   ];
 
@@ -29,6 +33,11 @@ const Navbar = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     console.log('Theme changed to:', newTheme);
+  };
+
+  const handleLogOut = () => {
+    localStorage.removeItem('userId');
+    navigate('/');
   };
 
   return (
@@ -71,25 +80,13 @@ const Navbar = () => {
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           
-          <Link to="/login">
-            <ButtonCustom 
+            <ButtonCustom onClick={handleLogOut}
               variant="ghost" 
               size="sm"
               icon={<LogIn size={18} />}
             >
-              Login
+              Log Out
             </ButtonCustom>
-          </Link>
-          
-          <Link to="/signup">
-            <ButtonCustom 
-              variant="default" 
-              size="sm"
-              icon={<User size={18} />}
-            >
-              Sign Up
-            </ButtonCustom>
-          </Link>
         </div>
 
         {/* Mobile Menu Button */}

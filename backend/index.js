@@ -58,6 +58,7 @@ app.get("/", (req, res) => {
 app.post("/signup", (req, res) => {
   let userData = new userModel({
     username: req.body.name,
+    fullname: req.body.fullname,
     email: req.body.email,
   });
 
@@ -71,7 +72,7 @@ app.post("/signup", (req, res) => {
           return res.json({ error: "Login failed after registration." });
         }
         // Successful registration and login
-        return res.json({ success: "Registration successful." });
+        return res.json({ success: "Registration successful.", userId: registeredUser._id });
       });
     })
     .catch((err) => {
@@ -93,10 +94,17 @@ app.post("/login", (req, res, next) => {
       if (err) {
         return res.status(500).json({ error: "Login failed." });
       }
-      return res.json({ success: "Login successful." });
+      return res.json({ success: "Login successful.", userId: user._id });
     });
   })(req, res, next);
 });
+
+app.get("/getUserDetails/:id", async (req,res)=> {
+  const user = await userModel.findOne({
+    _id: req.params.id,
+  })
+  res.send(user);
+})
 
 app.get("/logout", (req, res, next) => {
   req.logout((err) => {

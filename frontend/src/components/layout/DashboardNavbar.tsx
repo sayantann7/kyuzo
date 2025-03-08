@@ -79,7 +79,7 @@ const Navbar = () => {
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           
-            <ButtonCustom 
+            <ButtonCustom onClick={handleLogOut}
               variant="ghost" 
               size="sm"
               icon={<LogIn size={18} />}

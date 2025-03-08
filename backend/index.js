@@ -143,6 +143,28 @@ app.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
+app.get("/leaderboard", async (req, res) => {
+  try {
+    const users = await userModel.find({});
+    const rankedUsers = users
+      .map(user => ({
+        id: user._id,
+        name: user.fullname,
+        avatar: user.avatar,
+        xp: user.xp,
+        dailyStreak: user.dailyStreak,
+        totalScore: user.xp + user.dailyStreak
+      }))
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, 10); // Get top 10 users
+
+    res.status(200).json(rankedUsers);
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    res.status(500).json({ error: "An error occurred while fetching the leaderboard" });
+  }
+});
+
 app.post("/createQuiz/:userId", async (req, res) => {
   try {
     const { title, description, category, difficulty, duration, tags, isPublic, questions } = req.body;
@@ -163,6 +185,11 @@ app.post("/createQuiz/:userId", async (req, res) => {
     await newQuiz.save();
     await updateUserXPAndLevel(createdBy, 2); // Add 2 XP for creating a quiz
     await updateDailyStreak(createdBy);
+
+    // Update last activity
+    const user = await userModel.findById(createdBy);
+    user.lastActivity = `Created a new quiz on "${title}"`;
+    await user.save();
 
     res.status(201).json({ success: "Quiz created successfully", quizId: newQuiz._id });
   } catch (error) {
@@ -236,6 +263,7 @@ app.post("/submitQuiz", async (req, res) => {
       return res.status(400).json({ error: "Quiz ID and User ID are required." });
     }
 
+    const quiz = await quizModel.findById(quizId);
     const newQuizResult = new quizResultModel({
       quizId,
       userId,
@@ -246,13 +274,114 @@ app.post("/submitQuiz", async (req, res) => {
 
     await newQuizResult.save();
     await updateUserXPAndLevel(userId, Math.floor(score / 10)); // Add XP based on score
-    await updateDailyStreak(userId);
-    await updateAverageScore(userId);
+
+    // Update last activity
+    const user = await userModel.findById(userId);
+    user.lastActivity = `Took a quiz on "${quiz.title}" and scored ${score}%`;
+    await user.save();
 
     res.status(201).json({ success: "Quiz result submitted successfully", resultId: newQuizResult._id });
   } catch (error) {
     console.error("Error submitting quiz:", error);
     res.status(500).json({ error: "An error occurred while submitting the quiz" });
+  }
+});
+
+app.post("/sendFriendRequestByUsername", async (req, res) => {
+  try {
+    const { senderId, username } = req.body;
+
+    const receiver = await userModel.findOne({ username });
+    if (!receiver) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (receiver.friendRequests.includes(senderId)) {
+      return res.status(400).json({ error: "Friend request already sent" });
+    }
+
+    receiver.friendRequests.push(senderId);
+    await receiver.save();
+
+    res.status(200).json({ success: "Friend request sent", fullname: receiver.fullname });
+  } catch (error) {
+    console.error("Error sending friend request:", error);
+    res.status(500).json({ error: "An error occurred while sending the friend request" });
+  }
+});
+
+// Route to accept a friend request
+app.post("/acceptFriendRequest", async (req, res) => {
+  try {
+    const { userId, friendId } = req.body;
+
+    const user = await userModel.findById(userId);
+    const friend = await userModel.findById(friendId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.friends.push(friendId);
+    friend.friends.push(userId);
+
+    user.friendRequests = user.friendRequests.filter(id => id.toString() !== friendId);
+    await user.save();
+    await friend.save();
+
+    res.status(200).json({ success: "Friend request accepted" });
+  } catch (error) {
+    console.error("Error accepting friend request:", error);
+    res.status(500).json({ error: "An error occurred while accepting the friend request" });
+  }
+});
+
+app.get("/getFriends/:userId", async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.userId).populate("friends");
+    res.json(user.friends);
+  } catch (error) {
+    console.error("Error fetching friends:", error);
+    res.status(500).json({ error: "An error occurred while fetching friends" });
+  }
+});
+
+// Route to get friend requests
+app.get("/getFriendRequests/:userId", async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.userId).populate("friendRequests");
+    res.json(user.friendRequests);
+  } catch (error) {
+    console.error("Error fetching friend requests:", error);
+    res.status(500).json({ error: "An error occurred while fetching friend requests" });
+  }
+});
+
+// Route to get friend suggestions
+app.get("/getFriendSuggestions/:userId", async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.userId);
+    const suggestions = await userModel.find({ _id: { $ne: user._id, $nin: user.friends } }).limit(10);
+    res.json(suggestions);
+  } catch (error) {
+    console.error("Error fetching friend suggestions:", error);
+    res.status(500).json({ error: "An error occurred while fetching friend suggestions" });
+  }
+});
+
+// Route to get friends' latest activities
+app.get("/getFriendsActivities/:userId", async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.userId).populate('friends');
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const activities = await quizResultModel.find({ userId: { $in: user.friends } }).populate('quizId').sort({ createdAt: -1 }).limit(10);
+    res.json(activities);
+  } catch (error) {
+    console.error("Error fetching friends' activities:", error);
+    res.status(500).json({ error: "An error occurred while fetching friends' activities" });
   }
 });
 

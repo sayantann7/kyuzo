@@ -15,31 +15,32 @@ interface FriendProps {
 
 const Friends = () => {
   // Mock data for friends
-  const friends: FriendProps[] = [
-    {
-      id: 1,
-      name: "Kazuo Nakamura",
-      avatar: "https://ui-avatars.com/api/?name=Kazuo+Nakamura&background=A63A50&color=F7F3E9",
-      status: 'online',
-      lastActivity: 'Completed "Japanese History" quiz with 85%'
-    },
-    {
-      id: 2,
-      name: "Mei Lin",
-      avatar: "https://ui-avatars.com/api/?name=Mei+Lin&background=A63A50&color=F7F3E9",
-      status: 'offline',
-      lastActive: '2 hours ago',
-      lastActivity: 'Earned "Quiz Master" achievement'
-    },
-    {
-      id: 3,
-      name: "Takashi Mori",
-      avatar: "https://ui-avatars.com/api/?name=Takashi+Mori&background=A63A50&color=F7F3E9",
-      status: 'online',
-      lastActivity: 'Created new quiz "Japanese Art History"'
-    }
-  ];
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [friends, setFriends] = React.useState([])
+  React.useEffect(() => {
+      const fetchFriendsData = async () => {
+        try {
+          const userId = localStorage.getItem('userId');
+          const [friendsResponse, requestsResponse, suggestionsResponse] = await Promise.all([
+            fetch(`http://localhost:3000/getFriends/${userId}`),
+            fetch(`http://localhost:3000/getFriendRequests/${userId}`),
+            fetch(`http://localhost:3000/getFriendSuggestions/${userId}`)
+          ]);
   
+          const friendsData = await friendsResponse.json();
+  
+          setFriends(friendsData);
+        } catch (error) {
+          console.error("Error fetching friends data:", error);
+        }
+      };
+  
+      fetchFriendsData();
+    }, []);
+  
+    const filteredFriends = friends.filter(friend => 
+      friend.fullname && friend.fullname.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   return (
     <div className="glass-card p-6">
       <div className="flex justify-between items-center mb-6">
@@ -67,25 +68,19 @@ const Friends = () => {
       
       {/* Friend Activity List */}
       <div className="space-y-5">
-        {friends.map((friend) => (
+        {filteredFriends.map((friend) => (
           <div key={friend.id} className="flex items-start gap-4 p-3 border border-kyuzo-gold/20 rounded-md bg-kyuzo-red/5 hover:bg-kyuzo-red/10 transition-colors">
             <div className="relative">
               <img 
-                src={friend.avatar} 
-                alt={friend.name} 
+                src="/avatar.jpg" 
+                alt={friend.fullname} 
                 className="w-10 h-10 rounded-full"
               />
-              <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ${friend.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
             </div>
             
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-medium text-kyuzo-paper">{friend.name}</p>
-                {friend.status === 'offline' && friend.lastActive && (
-                  <p className="text-xs text-kyuzo-paper/60 flex items-center gap-1">
-                    <Clock size={12} /> {friend.lastActive}
-                  </p>
-                )}
+                <p className="font-medium text-kyuzo-paper">{friend.fullname}</p>
               </div>
               <p className="text-sm text-kyuzo-paper/70 mt-1">
                 {friend.lastActivity}

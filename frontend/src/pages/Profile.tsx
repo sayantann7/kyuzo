@@ -105,7 +105,7 @@ const Profile = () => {
                   XP: {user.xp}
                 </span>
                 <span className="text-sm text-kyuzo-paper/70">
-                  Next Level: {user.xpToNextLevel} XP remaining
+                  {user.xp}/{(user.level)*100} XP to Level {user.level + 1}
                 </span>
               </div>
               <div className="w-full h-2 bg-kyuzo-black/50 rounded-full overflow-hidden">

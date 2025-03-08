@@ -13,6 +13,7 @@ import ButtonCustom from '../components/ui/button-custom';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
+  const [leaderboardData, setLeaderboardData] = useState([]);
 
   const fetchUserData = async () => {
     try {
@@ -31,8 +32,22 @@ const Dashboard = () => {
     }
   };
 
+  const fetchLeaderboardData = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/leaderboard`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await response.json();
+      setLeaderboardData(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchUserData();
+    fetchLeaderboardData();
   }, []);
 
   if (!userData) {
@@ -151,10 +166,54 @@ const Dashboard = () => {
               <Friends />
             </div>
             
-            {/* Middle Column */}
-            <div className="flex flex-col gap-8 lg:col-span-2">
+             {/* Middle Column */}
+             <div className="flex flex-col gap-8 lg:col-span-2">
               <QuizzesList />
-              <Leaderboard />
+              <div className="glass-card p-6">
+                <h2 className="text-xl font-bold text-kyuzo-gold font-calligraphy mb-4">Leaderboard</h2>
+                {leaderboardData.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-kyuzo-paper/70">No leaderboard data available</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {leaderboardData.map((user, index) => (
+                      <div 
+                        key={user.id} 
+                        className={`flex items-center gap-4 p-4 rounded-md ${
+                          index === 0 
+                            ? 'bg-gradient-to-r from-amber-500/20 to-yellow-400/10 border border-yellow-400/30' 
+                            : index === 1 
+                              ? 'bg-gradient-to-r from-gray-400/20 to-gray-300/10 border border-gray-400/30' 
+                              : index === 2 
+                                ? 'bg-gradient-to-r from-amber-700/20 to-amber-600/10 border border-amber-700/30' 
+                                : 'bg-kyuzo-red/5 border border-kyuzo-gold/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-kyuzo-black text-kyuzo-gold font-bold">
+                          {index + 1}
+                        </div>
+                        <img 
+                          src="/avatar.jpg" 
+                          alt={user.name} 
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-kyuzo-paper">{user.name}</p>
+                          <div className="flex gap-3 text-xs text-kyuzo-paper/60 mt-1">
+                            <span className="flex items-center gap-1">
+                              <Award size={12} className="text-kyuzo-gold" /> {user.xp} XP
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <TrendingUp size={12} /> {user.dailyStreak} day streak
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

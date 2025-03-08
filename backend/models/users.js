@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now 
   },
+  lastActivity: {
+    type: String,
+    default: ''
+  },
   friends: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' 

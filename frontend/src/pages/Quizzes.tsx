@@ -46,7 +46,7 @@ const Quizzes = () => {
     return matchesSearch;
   });
 
-  const handleStartQuiz = (quizId) => {
+  const handleTakeQuiz = (quizId: string) => {
     navigate(`/attempt-quiz/${quizId}`);
   };
 
@@ -137,7 +137,7 @@ const Quizzes = () => {
                   imageUrl={quiz.coverImage}
                   completed={quiz.completed}
                   score={quiz.score}
-                  onStartQuiz={() => handleStartQuiz(quiz.id)}
+                  onStartQuiz={() => handleTakeQuiz(quiz.id)}
                 />
               ))}
             </div>
@@ -159,7 +159,7 @@ const Quizzes = () => {
                 imageUrl={quiz.coverImage}
                 completed={quiz.completed}
                 score={quiz.score}
-                onStartQuiz={() => handleStartQuiz(quiz.id)}
+                onStartQuiz={() => handleTakeQuiz(quiz.id)}
               />
             ))}
           </div>

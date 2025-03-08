@@ -13,6 +13,7 @@ const flash = require("connect-flash");
 const host = process.env.FRONTEND_HOST;
 const MongoStore = require("connect-mongo");
 const mongoURI = process.env.MONGODB_URI;
+const quizResultModel = require("./models/quizResults");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,6 +56,48 @@ try {
 app.get("/", (req, res) => {
   res.send("Express server is running");
 });
+
+// Helper function to update user XP and level
+const updateUserXPAndLevel = async (userId, xpToAdd) => {
+  const user = await userModel.findById(userId);
+  if (!user) return;
+
+  user.xp += xpToAdd;
+  while (user.xp >= user.xpToNextLevel) {
+    user.level += 1;
+    user.xpToNextLevel += 100;
+  }
+
+  await user.save();
+};
+
+// Helper function to update daily streak
+const updateDailyStreak = async (userId) => {
+  const user = await userModel.findById(userId);
+  if (!user) return;
+
+  const now = new Date();
+  const lastSignedIn = new Date(user.lastSignedIn);
+  const diffDays = Math.floor((now - lastSignedIn) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 1) {
+    user.dailyStreak += 1;
+  } else if (diffDays > 1) {
+    user.dailyStreak = 1;
+  }
+
+  user.lastSignedIn = now;
+  await user.save();
+};
+
+// Helper function to update average score
+const updateAverageScore = async (userId) => {
+  const results = await quizResultModel.find({ userId });
+  const totalScore = results.reduce((sum, result) => sum + result.score, 0);
+  const averageScore = totalScore / results.length;
+
+  await userModel.findByIdAndUpdate(userId, { averageScore });
+};
 
 app.post("/signup", (req, res) => {
   let userData = new userModel({
@@ -118,6 +161,9 @@ app.post("/createQuiz/:userId", async (req, res) => {
     });
 
     await newQuiz.save();
+    await updateUserXPAndLevel(createdBy, 2); // Add 2 XP for creating a quiz
+    await updateDailyStreak(createdBy);
+
     res.status(201).json({ success: "Quiz created successfully", quizId: newQuiz._id });
   } catch (error) {
     console.error("Error creating quiz:", error);
@@ -142,6 +188,37 @@ app.get("/getQuizzes/:userId", async (req, res) => {
   }
 });
 
+app.get("/getQuiz/:id", async (req, res) => {
+  try {
+    const quiz = await quizModel.findById(req.params.id);
+    res.json(quiz);
+  } catch (error) {
+    console.error("Error fetching quiz:", error);
+    res.status(500).json({ error: "An error occurred while fetching the quiz" });
+  }
+});
+
+app.get("/getQuiz/:id", async (req, res) => {
+  try {
+    const quiz = await quizModel.findById(req.params.id);
+    res.json(quiz);
+  } catch (error) {
+    console.error("Error fetching quiz:", error);
+    res.status(500).json({ error: "An error occurred while fetching the quiz" });
+  }
+});
+
+app.get("/getQuizResults/:userId", async (req, res) => {
+  try {
+    const results = await quizResultModel.find({ userId: req.params.userId }).populate("quizId");
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching quiz results:", error);
+    res.status(500).json({ error: "An error occurred while fetching quiz results" });
+  }
+});
+
+
 app.get("/logout", (req, res, next) => {
   req.logout((err) => {
     if (err) {
@@ -149,6 +226,47 @@ app.get("/logout", (req, res, next) => {
     }
     res.redirect(`${host}/`);
   });
+});
+
+app.post("/submitQuiz", async (req, res) => {
+  try {
+    const { quizId, userId, answers, score, timeSpent } = req.body;
+
+    if (!quizId || !userId) {
+      return res.status(400).json({ error: "Quiz ID and User ID are required." });
+    }
+
+    const newQuizResult = new quizResultModel({
+      quizId,
+      userId,
+      answers,
+      score,
+      timeSpent,
+    });
+
+    await newQuizResult.save();
+    await updateUserXPAndLevel(userId, Math.floor(score / 10)); // Add XP based on score
+    await updateDailyStreak(userId);
+    await updateAverageScore(userId);
+
+    res.status(201).json({ success: "Quiz result submitted successfully", resultId: newQuizResult._id });
+  } catch (error) {
+    console.error("Error submitting quiz:", error);
+    res.status(500).json({ error: "An error occurred while submitting the quiz" });
+  }
+});
+
+app.get("/getQuizResult/:id", async (req, res) => {
+  try {
+    const result = await quizResultModel.findById(req.params.id).populate("quizId");
+    if (!result) {
+      return res.status(404).json({ error: "Quiz result not found" });
+    }
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching quiz result:", error);
+    res.status(500).json({ error: "An error occurred while fetching the quiz result" });
+  }
 });
 
 function isLoggedIn(req, res, next) {

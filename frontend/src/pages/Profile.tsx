@@ -6,6 +6,7 @@ import ButtonCustom from "../components/ui/button-custom";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
+  const [quizResults, setQuizResults] = useState([]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -19,14 +20,10 @@ const Profile = () => {
   const fetchUserData = async () => {
     try {
       const userId = localStorage.getItem("userId");
-      console.log(userId);
-      const response = await fetch(
-        `http://localhost:3000/getUserDetails/${userId}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await fetch(`http://localhost:3000/getUserDetails/${userId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
       const data = await response.json();
       setUser(data);
     } catch (error) {
@@ -34,8 +31,23 @@ const Profile = () => {
     }
   };
 
+  const fetchQuizResults = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const response = await fetch(`http://localhost:3000/getQuizResults/${userId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      setQuizResults(data);
+    } catch (error) {
+      console.error("Error fetching quiz results:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUserData();
+    fetchQuizResults();
   }, []);
 
   if (!user) {
@@ -113,29 +125,30 @@ const Profile = () => {
               </h2>
 
               <div className="grid grid-cols-2 gap-4">
-                {user.quizzes.map((quiz, index) => (
+                {quizResults.map((result, index) => (
                   <div key={index} className="glass-card p-4 text-center">
                     <div className="mx-auto mb-2 p-2 rounded-full bg-kyuzo-red/10 w-10 h-10 flex items-center justify-center">
-                      <quiz.icon size={18} className="text-kyuzo-gold" />
+                      <BookOpen size={18} className="text-kyuzo-gold" />
                     </div>
                     <p className="text-2xl font-bold text-kyuzo-paper">
-                      {quiz.title}
+                      {result.quizId.title}
                     </p>
-                    <p className="text-sm text-kyuzo-paper/60">{quiz.label}</p>
+                    <p className="text-sm text-kyuzo-paper/60">Score: {result.score}%</p>
+                    <p className="text-sm text-kyuzo-paper/60">Date: {formatDate(result.createdAt)}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Recent Activity */}
-            {user.quizzes && user.quizzes.length > 0 && (
+            {quizResults && quizResults.length > 0 && (
               <div className="glass-card p-6">
                 <h2 className="text-xl font-bold text-kyuzo-gold mb-6 font-calligraphy">
                   Recent Activity
                 </h2>
 
                 <div className="space-y-4">
-                  {user.quizzes.map((quiz, index) => (
+                  {quizResults.map((result, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-3 p-3 border border-kyuzo-gold/20 rounded-md bg-kyuzo-red/5"
@@ -143,18 +156,14 @@ const Profile = () => {
                       <BookOpen size={16} className="text-kyuzo-gold" />
                       <div className="flex-1">
                         <p className="text-sm text-kyuzo-paper">
-                          Completed "{quiz.title}" quiz
+                          Completed "{result.quizId.title}" quiz
                         </p>
                         <p className="text-xs text-kyuzo-paper/60">
-                          {quiz.date} • Score: {quiz.score}%
+                          {formatDate(result.createdAt)} • Score: {result.score}%
                         </p>
                       </div>
                     </div>
                   ))}
-                </div>
-
-                <div className="mt-6 text-center">
-                  <ButtonCustom variant="ghost">View Full Activity</ButtonCustom>
                 </div>
               </div>
             )}

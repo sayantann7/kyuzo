@@ -52,13 +52,13 @@ const Dashboard = () => {
       color: "bg-gradient-to-r from-amber-500 to-yellow-400"
     },
     {
-      label: "Day Streak",
+      label: "Daily Streak",
       value: userData.dailyStreak,
       icon: TrendingUp,
       color: "bg-gradient-to-r from-green-500 to-emerald-400"
     },
     {
-      label: "Quizzes Taken",
+      label: "Quizzes",
       value: userData.quizzes.length,
       icon: BookOpen,
       color: "bg-gradient-to-r from-blue-500 to-cyan-400"

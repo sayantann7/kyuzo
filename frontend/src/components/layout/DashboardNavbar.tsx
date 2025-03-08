@@ -50,7 +50,7 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center">
+        <Link to="/dashboard" className="flex items-center">
           <span className="text-2xl font-bold font-calligraphy tracking-wider text-kyuzo-gold">
             kyuzo
           </span>

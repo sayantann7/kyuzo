@@ -113,15 +113,15 @@ const Profile = () => {
               </h2>
 
               <div className="grid grid-cols-2 gap-4">
-                {user.quizzes.map((stat, index) => (
+                {user.quizzes.map((quiz, index) => (
                   <div key={index} className="glass-card p-4 text-center">
                     <div className="mx-auto mb-2 p-2 rounded-full bg-kyuzo-red/10 w-10 h-10 flex items-center justify-center">
-                      <stat.icon size={18} className="text-kyuzo-gold" />
+                      <quiz.icon size={18} className="text-kyuzo-gold" />
                     </div>
                     <p className="text-2xl font-bold text-kyuzo-paper">
-                      {stat.value}
+                      {quiz.title}
                     </p>
-                    <p className="text-sm text-kyuzo-paper/60">{stat.label}</p>
+                    <p className="text-sm text-kyuzo-paper/60">{quiz.label}</p>
                   </div>
                 ))}
               </div>

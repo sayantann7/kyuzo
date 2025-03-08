@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Filter, Clock } from 'lucide-react';
 import ButtonCustom from '../ui/button-custom';
@@ -13,45 +13,48 @@ interface QuizItem {
   tags: string[];
 }
 
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+  };
+  return new Intl.DateTimeFormat("en-US", options).format(date);
+};
+
 const QuizzesList = () => {
   const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
+  const [quizzes, setQuizzes] = useState([]);
 
-  // Sample quiz data
-  const quizzes: QuizItem[] = [
-    {
-      id: 'q1',
-      title: 'Japanese Feudal History',
-      difficulty: 'intermediate',
-      questions: 15,
-      createdAt: '2023-10-12',
-      tags: ['history', 'japan', 'feudal']
-    },
-    {
-      id: 'q2',
-      title: 'Samurai Weapons & Armor',
-      difficulty: 'advanced',
-      questions: 20,
-      createdAt: '2023-10-08',
-      tags: ['weapons', 'samurai', 'martial arts']
-    },
-    {
-      id: 'q3',
-      title: 'Edo Period Art & Culture',
-      difficulty: 'intermediate',
-      questions: 12,
-      createdAt: '2023-10-02',
-      tags: ['art', 'culture', 'edo']
-    },
-    {
-      id: 'q4',
-      title: 'Basic Japanese Phrases',
-      difficulty: 'beginner',
-      questions: 10,
-      createdAt: '2023-09-25',
-      tags: ['language', 'basics', 'phrases']
-    }
-  ];
+  useEffect(() => {
+      const fetchQuizzes = async () => {
+        try {
+          const userId = localStorage.getItem('userId');
+          const response = await fetch(`http://localhost:3000/getQuizzes/${userId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+          });
+          const data = await response.json();
+          console.log(data);
+          let quizzesData = [];
+          data.forEach(quiz => {
+            quizzesData.push({
+              id: quiz._id,
+              title: quiz.title,
+              difficulty: quiz.difficulty,
+              questions: quiz.questions.length,
+              tags: quiz.tags
+            });
+          })
+          setQuizzes(quizzesData);
+        } catch (error) {
+          console.error("Error fetching quizzes:", error);
+        }
+      };
+  
+      fetchQuizzes();
+    }, []);
 
   // Filter quizzes based on selected filter
   const filteredQuizzes = filter === 'all' 
@@ -149,9 +152,6 @@ const QuizzesList = () => {
                       <span className="text-xs text-kyuzo-paper/60 flex items-center gap-1">
                         <BookOpen size={12} /> {quiz.questions} questions
                       </span>
-                      <span className="text-xs text-kyuzo-paper/60 flex items-center gap-1">
-                        <Clock size={12} /> {new Date(quiz.createdAt).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
                   <div className="flex gap-2 w-full sm:w-auto">
@@ -162,13 +162,6 @@ const QuizzesList = () => {
                       onClick={() => handleTakeQuiz(quiz.id)}
                     >
                       Take Quiz
-                    </ButtonCustom>
-                    <ButtonCustom 
-                      variant="outline" 
-                      size="sm"
-                      className="flex-1 sm:flex-initial"
-                    >
-                      Edit
                     </ButtonCustom>
                   </div>
                 </div>

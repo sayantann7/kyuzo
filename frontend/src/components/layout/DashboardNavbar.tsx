@@ -26,7 +26,6 @@ const Navbar = () => {
     { label: 'Quizzes', path: '/quizzes' },
     { label: 'Friends', path: '/friends' },
     { label: 'Profile', path: '/profile' },
-    { label: 'About', path: '/about' },
   ];
 
   const toggleTheme = () => {
@@ -80,7 +79,7 @@ const Navbar = () => {
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           
-            <ButtonCustom onClick={handleLogOut}
+            <ButtonCustom 
               variant="ghost" 
               size="sm"
               icon={<LogIn size={18} />}

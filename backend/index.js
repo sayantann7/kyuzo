@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const passport = require("passport");
 const userModel = require("./models/users");
+const quizModel = require("./models/quizzes");
 const localStrategy = require("passport-local");
 const expressSession = require("express-session");
 passport.use(new localStrategy(userModel.authenticate()));
@@ -99,12 +100,47 @@ app.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
+app.post("/createQuiz/:userId", async (req, res) => {
+  try {
+    const { title, description, category, difficulty, duration, tags, isPublic, questions } = req.body;
+    const createdBy = req.params.userId;
+
+    const newQuiz = new quizModel({
+      title,
+      description,
+      category,
+      difficulty,
+      duration,
+      tags,
+      isPublic,
+      questions,
+      createdBy,
+    });
+
+    await newQuiz.save();
+    res.status(201).json({ success: "Quiz created successfully", quizId: newQuiz._id });
+  } catch (error) {
+    console.error("Error creating quiz:", error);
+    res.status(500).json({ error: "An error occurred while creating the quiz" });
+  }
+});
+
 app.get("/getUserDetails/:id", async (req,res)=> {
   const user = await userModel.findOne({
     _id: req.params.id,
-  })
+  }).populate("quizzes").populate("friends").populate("friendRequests");
   res.send(user);
 })
+
+app.get("/getQuizzes/:userId", async (req, res) => {
+  try {
+    const quizzes = await quizModel.find({ createdBy: req.params.userId });
+    res.json(quizzes);
+  } catch (error) {
+    console.error("Error fetching quizzes:", error);
+    res.status(500).json({ error: "An error occurred while fetching quizzes" });
+  }
+});
 
 app.get("/logout", (req, res, next) => {
   req.logout((err) => {

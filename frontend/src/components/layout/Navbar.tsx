@@ -63,13 +63,6 @@ const Navbar = () => {
 
         {/* Auth Buttons and Theme Toggle */}
         <div className="hidden md:flex items-center space-x-4">
-          <button
-            className="p-2 rounded-full text-kyuzo-paper hover:bg-kyuzo-red/10 transition-colors"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
           
           <Link to="/login">
             <ButtonCustom 

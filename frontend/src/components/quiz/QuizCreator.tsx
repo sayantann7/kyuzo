@@ -12,17 +12,41 @@ const QuizCreator = () => {
   const [timeLimit, setTimeLimit] = useState(15);
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Navigate to quiz page or show preview would happen here
-      console.log({ topic, difficulty, questionCount, timeLimit });
-    }, 1500);
-  };
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      setIsLoading(true);
+  
+      try {
+        const response = await fetch(`http://localhost:3000/generateQuiz`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            topic,
+            questionCount,
+            difficulty,
+            userId: localStorage.getItem('userId')
+          }),
+        });
+  
+        const data = await response.json();
+        setIsLoading(false);
+  
+        if (!response.ok) {
+          alert("An error occurred while generating your quiz");
+          return;
+        }
+  
+        alert("Your quiz has been generated successfully.");
+        navigate("/dashboard");
+      } catch (error) {
+        setIsLoading(false);
+        alert("An error occurred while generating your quiz");
+        console.error(error);
+      }
+    };
   
   return (
     <div className="glass-card p-6 md:p-8 max-w-lg">

@@ -14,6 +14,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState([]);
+  const [quizzesTaken, setQuizzesTaken] = useState(0);
 
   const fetchUserData = async () => {
     try {
@@ -31,6 +32,20 @@ const Dashboard = () => {
       console.error(error);
     }
   };
+  const userId = localStorage.getItem('userId');
+  useEffect(() => {
+    const fetchQuizzesTaken = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/getQuizzesTaken/${userId}`);
+        const data = await response.json();
+        setQuizzesTaken(data.quizzesTaken);
+      } catch (error) {
+        console.error("Error fetching quizzes taken count:", error);
+      }
+    };
+
+    fetchQuizzesTaken();
+  }, [userId]);
 
   const fetchLeaderboardData = async () => {
     try {
@@ -74,7 +89,7 @@ const Dashboard = () => {
     },
     {
       label: "Quizzes",
-      value: userData.quizzes.length,
+      value: quizzesTaken,
       icon: BookOpen,
       color: "bg-gradient-to-r from-blue-500 to-cyan-400"
     },
@@ -162,7 +177,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
             <div className="flex flex-col gap-8">
-              <QuizCreator />
+              {/* <QuizCreator /> */}
               <Friends />
             </div>
             

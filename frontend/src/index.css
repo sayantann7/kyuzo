@@ -1,3 +1,234 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 26 26 26;
+    --foreground: 247 243 233;
+
+    --card: 41 41 41;
+    --card-foreground: 247 243 233;
+
+    --popover: 41 41 41;
+    --popover-foreground: 247 243 233;
+
+    --primary: 155 28 28;
+    --primary-foreground: 247 243 233;
+
+    --secondary: 223 194 130;
+    --secondary-foreground: 26 26 26;
+
+    --muted: 67 75 108;
+    --muted-foreground: 215 210 199;
+
+    --accent: 223 194 130;
+    --accent-foreground: 26 26 26;
+
+    --destructive: 155 28 28;
+    --destructive-foreground: 247 243 233;
+
+    --border: 67 75 108;
+    --input: 41 41 41;
+    --ring: 223 194 130;
+
+    --radius: 0.5rem;
+  }
+
+  .light {
+    --background: 247 243 233;
+    --foreground: 26 26 26;
+
+    --card: 255 255 255;
+    --card-foreground: 26 26 26;
+
+    --popover: 255 255 255;
+    --popover-foreground: 26 26 26;
+
+    --primary: 155 28 28;
+    --primary-foreground: 255 255 255;
+
+    --secondary: 223 194 130;
+    --secondary-foreground: 26 26 26;
+
+    --muted: 215 210 199;
+    --muted-foreground: 67 75 108;
+
+    --accent: 223 194 130;
+    --accent-foreground: 26 26 26;
+
+    --destructive: 155 28 28;
+    --destructive-foreground: 255 255 255;
+
+    --border: 215 210 199;
+    --input: 247 243 233;
+    --ring: 155 28 28;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-kyuzo-black text-kyuzo-paper antialiased;
+    background-image: url('/patterns/seigaiha.svg');
+    background-repeat: repeat;
+    background-size: 200px;
+  }
+
+  .light body {
+    @apply bg-kyuzo-paper text-kyuzo-black;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-kyuzo-black/50;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-kyuzo-red/50 rounded-full;
+    border: 2px solid transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-kyuzo-red/70;
+  }
+
+  .light ::-webkit-scrollbar-track {
+    @apply bg-kyuzo-paper/50;
+  }
+}
+
+@layer components {
+  .text-stroke {
+    -webkit-text-stroke: 1px theme('colors.kyuzo.gold');
+    text-shadow: 0 0 8px rgba(223, 194, 130, 0.3);
+  }
+
+  .glass-card {
+    @apply relative rounded-lg bg-kyuzo-black/80 backdrop-blur-md border border-kyuzo-gold/20 
+    shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300;
+  }
+
+  .light .glass-card {
+    @apply bg-kyuzo-paper/90 backdrop-blur-md border border-kyuzo-gold/20 
+    shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply border-kyuzo-gold/40 shadow-[0_8px_30px_rgba(223,194,130,0.1)];
+  }
+
+  .accent-border::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-kyuzo-gold transition-all duration-500 ease-out;
+  }
+
+  .accent-border:hover::after {
+    @apply w-full;
+  }
+  
+  .japanese-pattern {
+    @apply relative overflow-hidden;
+  }
+  
+  .japanese-pattern::before {
+    content: '';
+    @apply absolute inset-0 bg-asanoha-pattern bg-repeat opacity-5 pointer-events-none z-0;
+  }
+  
+  /* Brush stroke animation for headers */
+  .brush-stroke {
+    @apply relative inline-block;
+  }
+  
+  .brush-stroke::after {
+    content: '';
+    @apply absolute bottom-0 left-0 h-[3px] w-0 bg-kyuzo-gold opacity-80;
+    animation: brush-stroke 0.8s ease-out forwards;
+    animation-delay: 0.2s;
+  }
+
+  /* Button styles */
+  .btn-kyuzo {
+    @apply relative inline-flex items-center justify-center px-6 py-3 
+    overflow-hidden font-medium transition-all
+    bg-kyuzo-red text-kyuzo-paper rounded-md
+    hover:bg-kyuzo-red focus:outline-none;
+  }
+
+  .btn-kyuzo::before {
+    content: '';
+    @apply absolute inset-0 bg-kyuzo-gold opacity-0 transition-opacity;
+  }
+
+  .btn-kyuzo:hover::before {
+    @apply opacity-10;
+  }
+
+  .btn-kyuzo:active {
+    @apply scale-95;
+  }
+
+  /* Outline button */
+  .btn-outline {
+    @apply relative inline-flex items-center justify-center px-6 py-3 
+    overflow-hidden font-medium transition-all
+    bg-transparent text-kyuzo-gold rounded-md
+    border border-kyuzo-gold/50
+    hover:bg-kyuzo-gold/10 focus:outline-none;
+  }
+
+  .btn-outline:active {
+    @apply scale-95;
+  }
+  
+  /* Fix for animation visibility */
+  .visible {
+    opacity: 1 !important;
+  }
+}
+
+/* Animation utilities */
+@keyframes brush-stroke {
+  to {
+    width: 100%;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+  
+  .animate-delay-600 {
+    animation-delay: 600ms;
+  }
+}

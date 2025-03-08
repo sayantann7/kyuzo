@@ -57,7 +57,7 @@ app.get("/", (req, res) => {
 
 app.post("/signup", (req, res) => {
   let userData = new userModel({
-    username: req.body.username,
+    username: req.body.name,
     email: req.body.email,
   });
 
@@ -68,28 +68,35 @@ app.post("/signup", (req, res) => {
         if (err) {
           console.error("Login error after registration:", err);
           req.flash("error", "Login failed after registration.");
-          return res.redirect(`${host}/signup`);
+          return res.json({ error: "Login failed after registration." });
         }
         // Successful registration and login
-        return res.redirect(`${host}/dashboard`);
+        return res.json({ success: "Registration successful." });
       });
     })
     .catch((err) => {
       console.error("Registration error:", err);
       req.flash("error", err.message);
-      res.redirect(`${host}/signup`);
+      res.json({ error: err.message });
     });
 });
 
-app.post(
-  "/login",
-  passport.authenticate("local", {
-    successRedirect: `${host}/dashboard`,
-    failureRedirect: `${host}/login`,
-    failureFlash: true,
-  }),
-  function (req, res) {}
-);
+app.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return res.status(500).json({ error: "An error occurred during authentication." });
+    }
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials." });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.status(500).json({ error: "Login failed." });
+      }
+      return res.json({ success: "Login successful." });
+    });
+  })(req, res, next);
+});
 
 app.get("/logout", (req, res, next) => {
   req.logout((err) => {
